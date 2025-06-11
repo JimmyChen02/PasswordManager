@@ -306,20 +306,6 @@ CREATE TABLE stored_passwords (
 
 ## Advanced Configuration
 
-### Running on EC2 in the Background
-
-To keep the application running after you disconnect from SSH:
-
-```bash
-# Using screen
-screen -S password_manager
-python3 password_manager.py
-# Press Ctrl+A, then D to detach
-
-# To reattach later
-screen -r password_manager
-```
-
 ### Database Administration
 
 For database monitoring and maintenance, connect directly to your PostgreSQL instance from EC2:
