@@ -226,9 +226,10 @@ The application **automatically creates** all required tables, indexes, and data
 
 Requirements:
 1. **RDS Instance is running** and accessible
-2. **Security groups** allow connections from your EC2 instance
-3. **Database credentials** are correctly configured in environment variables
-4. **SSL connections** are properly configured (required by default)
+2. **VPC Configuration**: Ensure EC2 and RDS instances are in the same VPC
+3. **Security groups** allow connections from your EC2 instance
+4. **Database credentials** are correctly configured in environment variables
+5. **SSL connections** are properly configured (required by default)
 
 ## Troubleshooting
 
@@ -247,6 +248,7 @@ ssh -i your-key-file.pem -o ConnectTimeout=10 ec2-user@your-ec2-instance.compute
 
 #### Database Connection Problems
 - Verify database instance is running and accessible
+- **Check VPC configuration**: Ensure EC2 and RDS are in the **same VPC**
 - Check security groups allow PostgreSQL connections
 - Confirm database credentials in `.env` file are correct
 - Test connectivity: `telnet your-db-host 5432`
