@@ -357,7 +357,7 @@ class PostgreSQLPasswordManager:
         try:
             with self.connection.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    "SELECT website, username, encrypted_password FROM stored_passwords WHERE user_id = %s ORDER BY website",
+                    "SELECT id, website, username, encrypted_password FROM stored_passwords WHERE user_id = %s ORDER BY website",
                     (user_id,)
                 )
                 return cursor.fetchall()
@@ -380,6 +380,28 @@ class PostgreSQLPasswordManager:
         except psycopg2.Error as e:
             self.connection.rollback()
             print(f"Error adding password: {e}")
+            return False
+
+    def delete_password(self, password_id, website):
+        """Delete a password entry by ID"""
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM stored_passwords WHERE id = %s",
+                    (password_id,)
+                )
+                
+                if cursor.rowcount > 0:
+                    self.connection.commit()
+                    print(f"Password for {website} deleted successfully!")
+                    return True
+                else:
+                    print("No password found with that ID.")
+                    return False
+                    
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            print(f"Error deleting password: {e}")
             return False
 
     def derive_key_from_master_password(self, master_password, salt):
@@ -421,6 +443,64 @@ class PostgreSQLPasswordManager:
                 print(f"Error decrypting entry for {entry.get('website', 'unknown')}: {e}")
         
         print("--- End of Passwords ---\n")
+
+    def display_passwords_for_deletion(self, passwords, fer):
+        """Display passwords with numbers for deletion selection"""
+        print("\n==== Your Stored Passwords ====")
+        
+        if not passwords:
+            print("No passwords stored yet.")
+            return []
+        
+        displayed_passwords = []
+        for i, entry in enumerate(passwords, 1):
+            try:
+                website = entry["website"]
+                username = entry["username"]
+                
+                print(f"{i}. {website} - {username}")
+                displayed_passwords.append(entry)
+                
+            except Exception as e:
+                print(f"Error displaying entry: {e}")
+        
+        return displayed_passwords
+
+    def delete_password_interactive(self, user_id, passwords, fer):
+        """Interactive password deletion"""
+        displayed_passwords = self.display_passwords_for_deletion(passwords, fer)
+        
+        if not displayed_passwords:
+            return False
+        
+        try:
+            # Get user selection
+            choice = input("Enter the number of the password to delete: ").strip()
+            choice_num = int(choice)
+            
+            if 1 <= choice_num <= len(displayed_passwords):
+                selected_entry = displayed_passwords[choice_num - 1]
+                website = selected_entry["website"]
+                password_id = selected_entry["id"]
+                
+                # Confirm deletion
+                confirm = input(f"Are you sure you want to delete {website} password? (yes/no): ").lower().strip()
+                
+                if confirm in ['yes', 'y']:
+                    return self.delete_password(password_id, website)
+                else:
+                    print("Deletion cancelled.")
+                    return False
+            else:
+                print("Invalid selection. Please choose a valid number.")
+                return False
+                
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            return False
+        except Exception as e:
+            print(f"Error during deletion: {e}")
+            return False
 
     def close_connection(self):
         """Close database connection"""
@@ -476,7 +556,7 @@ def main():
         
         # Main program loop
         while True:
-            mode = input("\nWould you like to add a new password or view existing ones (view/add), press q to quit? ").lower().strip()
+            mode = input("\nWould you like to add a new password, view existing ones, or delete a password (view/add/delete), press q to quit? ").lower().strip()
             
             if mode == "q":
                 break
@@ -494,8 +574,12 @@ def main():
                 if pm.add_password(user_id, website_name, account_username, encrypted_password):
                     # Refresh passwords list
                     passwords = pm.get_user_passwords(user_id)
+            elif mode == "delete":
+                if pm.delete_password_interactive(user_id, passwords, fer):
+                    # Refresh passwords list after successful deletion
+                    passwords = pm.get_user_passwords(user_id)
             else:
-                print("Invalid mode. Please enter 'view', 'add', or 'q'.")
+                print("Invalid mode. Please enter 'view', 'add', 'delete', or 'q'.")
     
     finally:
         pm.close_connection()
