@@ -226,7 +226,7 @@ The application **automatically creates** all required tables, indexes, and data
 
 Requirements:
 1. **RDS Instance is running** and accessible
-2. **VPC Configuration**: Ensure EC2 and RDS instances are in the same VPC
+2. **VPC Configuration**: Ensure EC2 and RDS instances are in the **same VPC**
 3. **Security groups** allow connections from your EC2 instance
 4. **Database credentials** are correctly configured in environment variables
 5. **SSL connections** are properly configured (required by default)
