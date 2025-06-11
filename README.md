@@ -1,4 +1,4 @@
-# PostgreSQL Password Manager - AWS Production Setup
+# Cloud Password Manager - AWS Production Setup
 
 ![Python](https://img.shields.io/badge/python-3.6+-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-12+-blue.svg)
@@ -6,7 +6,7 @@
 ![AWS](https://img.shields.io/badge/deployment-AWS-orange.svg)
 ![Terminal](https://img.shields.io/badge/interface-terminal-black.svg)
 
-A secure multi-user password manager that runs in the terminal and uses PostgreSQL for data storage and strong encryption to protect your passwords.
+A secure multi-user password manager that runs in the terminal and uses PostgreSQL on AWS RDS and EC2 for data storage and strong encryption to protect your passwords.
 
 ## Features
 
