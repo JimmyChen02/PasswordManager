@@ -1,4 +1,4 @@
-# PostgreSQL Password Manager
+# PostgreSQL Password Manager - AWS Production Setup
 
 ![Python](https://img.shields.io/badge/python-3.6+-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-12+-blue.svg)
@@ -19,47 +19,68 @@ A secure multi-user password manager that runs in the terminal and uses PostgreS
 - **User isolation**: Each user's data is completely separate and encrypted with their unique key
 - **Cross-platform**: Works on Linux, macOS, and Windows terminals
 
-## Quick Start (Local Development)
+## AWS Deployment
 
-### Prerequisites
-- Python 3.6+
-- PostgreSQL 12+
-- pip3
+This password manager is designed to run on **AWS EC2** with **AWS RDS PostgreSQL** for production use. The RDS database is configured as **private** (not publicly accessible) for enhanced security.
 
-### Installation
+### AWS Prerequisites
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/JimmyChen02/PasswordManager.git
-   cd PasswordManager
-   ```
+- **SSH Key**: Your EC2 key pair file (`.pem`) 
+- **AWS EC2 Instance**: Running with the application code
+- **AWS RDS Instance**: PostgreSQL database in private subnet (same VPC as EC2)
+- **Network Access**: Ability to connect to your EC2 instance via SSH
 
-2. **Install dependencies**
-   ```bash
-   pip3 install psycopg2-binary cryptography python-dotenv
-   ```
+### AWS Setup Instructions
 
-3. **Setup local PostgreSQL database**
-   ```bash
-   # Create database (adjust for your PostgreSQL setup)
-   createdb password_manager
-   ```
+#### Step 1: Prepare Your SSH Key
 
-4. **Configure environment variables**
-   Create a `.env` file:
-   ```bash
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=password_manager
-   DB_USER=your-local-user
-   DB_PASSWORD=your-local-password
-   ```
+Set proper permissions for your SSH key file:
+```bash
+chmod 400 your-key-file.pem
+```
 
-5. **Run the application**
-   ```bash
-   python3 password_manager.py
-   ```
-   The application will start in your terminal with an interactive prompt.
+#### Step 2: Connect to Your EC2 Instance
+
+SSH into the EC2 instance where the application is installed:
+```bash
+ssh -i your-key-file.pem ec2-user@your-ec2-public-ip
+```
+
+#### Step 3: Install Dependencies on EC2
+
+Once connected to your EC2 instance:
+```bash
+# Install Python dependencies
+pip3 install psycopg2-binary cryptography python-dotenv
+
+# Clone the repository (if not already done)
+git clone https://github.com/JimmyChen02/PasswordManager.git
+cd PasswordManager
+```
+
+#### Step 4: Configure Database Connection
+
+Create a `.env` file on your EC2 instance with your RDS credentials:
+```bash
+nano .env
+```
+
+Add your database configuration:
+```bash
+DB_HOST=your-rds-endpoint.region.rds.amazonaws.com
+DB_PORT=5432
+DB_NAME=password_manager
+DB_USER=your-db-user
+DB_PASSWORD=your-db-password
+```
+
+#### Step 5: Run the Password Manager
+
+Start the application in your EC2 terminal:
+```bash
+python3 password_manager.py
+```
+The application will run in the SSH terminal session.
 
 ### Using the Terminal Interface
 
@@ -84,43 +105,59 @@ When you first run the application:
 Once logged in, you can use these terminal commands:
 - **`view`**: Display all your stored passwords (decrypted) in the terminal
 - **`add`**: Add a new password entry through interactive prompts
+- **`delete`**: Remove a password entry through interactive selection
 - **`q`**: Quit the application and return to your shell
 
 **Example terminal session:**
 ```
 === PostgreSQL Multi-User Password Manager ===
 Database tables created successfully!
-Enter your username: kaleidoscopeX
-Enter your master password: BlueWhale!93@
+Enter your username: Jimmy
+Enter your master password: 1234
 
-No account found for username 'kaleidoscopeX' with the provided password.
-Do you have an existing account? (yes/no): no
+No account found for username 'Jimmy' with the provided password.
+Do you have an existing account? (yes/no): yes
+Either your username or password is incorrect. Please try again with correct credentials.
 
-Creating new account for 'kaleidoscopeX'...
-New user created successfully! User ID: 1
-Master password accepted – new user verified.
+Enter your username: Jimmy
+Enter your master password: 123412
 
-Would you like to add a new password or view existing ones (view/add), press q to quit? add
-Website name: Notion
-Account name: jc3673@cornell.edu
-Password: Z9!v4we@Mtn#
-Password added successfully!
+No account found for username 'Jimmy' with the provided password.
+Do you have an existing account? (yes/no): yes
+Either your username or password is incorrect. Please try again with correct credentials.
 
-Would you like to add a new password or view existing ones (view/add), press q to quit? add
-Website name: Figma
-Account name: cosmic.trailz
-Password: Br4v3Wind*2$
-Password added successfully!
+Enter your username: Jimmy
+Enter your master password: GhostBin87@
+Master password accepted - existing data verified.
 
-Would you like to add a new password or view existing ones (view/add), press q to quit? view
+Would you like to add a new password, view existing ones, or delete a password (view/add/delete), press q to quit? view
+
+--- Your Stored Passwords ---
+Website                        Username                       Password
+------------------------------------------------------------------------------------------
+Github                         JimmyChen02                    908Mafia$*!
+Google                         jc3673@cornell.edu             GoBigRed228!?
+Spotify                        Jimmy123User                   Data123!$%&()
+--- End of Passwords ---
+
+Would you like to add a new password, view existing ones, or delete a password (view/add/delete), press q to quit? delete
 
 ==== Your Stored Passwords ====
-Website                          Username                         Password
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. Github - JimmyChen02
+2. Google - jc3673@cornell.edu
+3. Spotify - Jimmy123User
+Enter the number of the password to delete: 3
+Are you sure you want to delete Spotify password? (yes/no): yes
+Password for Spotify deleted successfully!
 
-Figma                            cosmic.trailz                    Br4v3Wind*2$
-Notion                           jc3673@cornell.edu               Z9!v4we@Mtn#
-──── End of Passwords ────
+Would you like to add a new password, view existing ones, or delete a password (view/add/delete), press q to quit? view
+
+--- Your Stored Passwords ---
+Website                        Username                       Password
+------------------------------------------------------------------------------------------
+Github                         JimmyChen02                    908Mafia$*!
+Google                         jc3673@cornell.edu             GoBigRed228!?
+--- End of Passwords ---
 ```
 
 ## Security Architecture
@@ -130,57 +167,6 @@ Notion                           jc3673@cornell.edu               Z9!v4we@Mtn#
 - **Key derivation**: PBKDF2-HMAC-SHA256 with 1,200,000 iterations
 - **Password hashing**: Username + master password combination hashed with SHA256
 - **Encryption**: Fernet (AES 128 in CBC mode with HMAC-SHA256 authentication)
-
-## AWS Deployment
-
-This password manager can be deployed on **AWS EC2** with **AWS RDS PostgreSQL** for production use.
-
-### AWS Prerequisites
-
-- **SSH Key**: Your EC2 key pair file (`.pem`) 
-- **AWS EC2 Instance**: Running with the application code
-- **AWS RDS Instance**: PostgreSQL database accessible from EC2
-- **Network Access**: Ability to connect to your EC2 instance
-
-### AWS Setup Instructions
-
-#### Step 1: Prepare Your SSH Key
-
-Set proper permissions for your SSH key file:
-```bash
-chmod 400 your-key-file.pem
-```
-
-#### Step 2: Connect to Your EC2 Instance
-
-SSH into the EC2 instance where the application is installed:
-```bash
-ssh -i your-key-file.pem ec2-user@your-ec2-instance.compute-1.amazonaws.com
-```
-
-#### Step 3: Configure Database Connection
-
-Create a `.env` file on your EC2 instance with your RDS credentials:
-```bash
-nano .env
-```
-
-Add your database configuration:
-```bash
-DB_HOST=your-rds-endpoint.region.rds.amazonaws.com
-DB_PORT=5432
-DB_NAME=password_manager
-DB_USER=your-db-user
-DB_PASSWORD=your-db-password
-```
-
-#### Step 4: Run the Password Manager
-
-Start the application in your terminal:
-```bash
-python3 password_manager.py
-```
-The application will run in the SSH terminal session.
 
 ### AWS Configuration Requirements
 
@@ -207,6 +193,7 @@ Ensure these are installed on your EC2 instance:
 
 **Instance Requirements**
 - **Engine**: PostgreSQL 12.x or higher
+- **Publicly Accessible**: **NO** (Private for security)
 - **Instance Class**: t3.micro (minimum for development)
 - **Storage**: 20GB minimum
 - **Multi-AZ**: Recommended for production
@@ -218,18 +205,35 @@ Your RDS security group must allow:
 Type: PostgreSQL
 Protocol: TCP
 Port: 5432
-Source: Your EC2 security group ID
+Source: Your EC2 security group ID (NOT 0.0.0.0/0)
 ```
 
 **Database Setup**
 The application **automatically creates** all required tables, indexes, and database structures on first run. No manual setup is required.
 
+### Network Architecture
+
+```
+Internet → EC2 (Public Subnet) → RDS (Private Subnet)
+                ↑                    ↑
+        Your SSH Connection     Private Database
+```
+
 Requirements:
-1. **RDS Instance is running** and accessible
-2. **VPC Configuration**: Ensure EC2 and RDS instances are in the **same VPC**
-3. **Security groups** allow connections from your EC2 instance
-4. **Database credentials** are correctly configured in environment variables
-5. **SSL connections** are properly configured (required by default)
+1. **EC2 and RDS instances** are in the **same VPC**
+2. **RDS is in private subnet** (not publicly accessible)
+3. **Security groups** allow connections from EC2 to RDS only
+4. **EC2 has public IP** for SSH access
+5. **Database credentials** are correctly configured in environment variables
+6. **SSL connections** are properly configured (required by default)
+
+### Why This Setup is Secure
+
+- **Database isolation**: RDS is not accessible from the internet
+- **Network segmentation**: Database is in private subnet
+- **Access control**: Only your EC2 instance can reach the database
+- **Encrypted connections**: All database connections use SSL/TLS
+- **Limited exposure**: Only SSH port 22 is exposed to the internet
 
 ## Troubleshooting
 
@@ -243,22 +247,22 @@ Requirements:
 
 Test your SSH connection:
 ```bash
-ssh -i your-key-file.pem -o ConnectTimeout=10 ec2-user@your-ec2-instance.compute-1.amazonaws.com
+ssh -i your-key-file.pem -o ConnectTimeout=10 ec2-user@your-ec2-public-ip
 ```
 
 #### Database Connection Problems
-- Verify database instance is running and accessible
+- **Connection timeout**: Most likely cause is **RDS not publicly accessible** - this is expected and correct
+- **Must run on EC2**: The application must be run from EC2, not from your local machine
 - **Check VPC configuration**: Ensure EC2 and RDS are in the **same VPC**
-- Check security groups allow PostgreSQL connections
-- Confirm database credentials in `.env` file are correct
-- Test connectivity: `telnet your-db-host 5432`
+- **Security group rules**: Verify RDS security group allows connections from EC2 security group
+- **Database status**: Confirm RDS instance is in "Available" status
 
 #### Application Problems
-- **Python module not found**: Check if required packages are installed
+- **Python module not found**: Check if required packages are installed on EC2
 - **Database tables not created**: Ensure database allows CREATE TABLE operations
-- **Environment variables**: Verify `.env` file exists and contains correct credentials
+- **Environment variables**: Verify `.env` file exists on EC2 and contains correct credentials
 
-Check Python dependencies:
+Check Python dependencies on EC2:
 ```bash
 python3 -c "import psycopg2, cryptography; print('Dependencies OK')"
 ```
@@ -302,9 +306,23 @@ CREATE TABLE stored_passwords (
 
 ## Advanced Configuration
 
+### Running on EC2 in the Background
+
+To keep the application running after you disconnect from SSH:
+
+```bash
+# Using screen
+screen -S password_manager
+python3 password_manager.py
+# Press Ctrl+A, then D to detach
+
+# To reattach later
+screen -r password_manager
+```
+
 ### Database Administration
 
-For database monitoring and maintenance, connect directly to your PostgreSQL instance:
+For database monitoring and maintenance, connect directly to your PostgreSQL instance from EC2:
 
 ```bash
 psql -h your-db-host -p 5432 -U your-db-admin -d password_manager
@@ -336,9 +354,22 @@ FROM stored_passwords sp
 JOIN users u ON sp.user_id = u.id
 WHERE u.username = 'your-username'
 ORDER BY sp.website;
+
+-- View all users and their stored passwords (encrypted)
+SELECT 
+  u.id AS user_id,
+  u.username AS username,
+  sp.website,
+  sp.username AS account_username,
+  sp.encrypted_password
+FROM users u
+JOIN stored_passwords sp ON u.id = sp.user_id
+ORDER BY u.id;
 ```
 
 ### Backup and Restore
+
+Run these commands from your EC2 instance:
 
 ```bash
 # Create backup
@@ -356,21 +387,24 @@ psql -h your-db-host -p 5432 -U your-db-admin -d password_manager < backup.sql
 - **Master password**: This is never stored anywhere. If you forget it, your data cannot be recovered
 - **Screen privacy**: Passwords are displayed in plain text in the terminal - ensure no one is watching
 - **Terminal history**: Consider using `history -c` after use to clear command history
-- **Backup**: Consider backing up your database, but remember that without the master password, encrypted data is useless
-- **Network security**: Ensure your database connection is secure (SSL/TLS)
+- **SSH security**: Always use SSH keys instead of passwords for EC2 access
+- **Database isolation**: RDS is private and not accessible from the internet
+- **Network security**: Database connections use SSL/TLS encryption
 - **Environment variables**: Keep your `.env` file secure and never commit it to version control
 - **SSH Keys**: Never commit your `.pem` key files to version control
 - **Database credentials**: Use strong passwords and limit access
+- **Screen sessions**: Be careful with screen/tmux sessions that might persist passwords
 
 ## Development History
 
 This password manager has evolved through multiple versions:
 - **V1**: Single-user with file-based salt storage
 - **V2**: Multi-user with JSON file storage
-- **V3**: Current PostgreSQL-based multi-user system
+- **V3**: PostgreSQL-based multi-user system with AWS deployment
+- **V4**: Current version consisting of V3 + Delete function
 
 The current version provides better security, scalability, and reliability compared to previous file-based approaches.
 
 ## Disclaimer
 
-This software is provided as-is. While it implements industry-standard security practices, use it at your own risk. Always maintain proper backups and follow security best practices.
+This software is provided as-is. While it implements industry-standard security practices, use it at your own risk. Always maintain proper backups and follow security best practices. The private database configuration is required for production use.
