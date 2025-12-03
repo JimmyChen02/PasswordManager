@@ -227,55 +227,6 @@ Requirements:
 5. **Database credentials** are correctly configured in environment variables
 6. **SSL connections** are properly configured (required by default)
 
-### Why This Setup is Secure
-
-- **Database isolation**: RDS is not accessible from the internet
-- **Network segmentation**: Database is in private subnet
-- **Access control**: Only your EC2 instance can reach the database
-- **Encrypted connections**: All database connections use SSL/TLS
-- **Limited exposure**: Only SSH port 22 is exposed to the internet
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### SSH Connection Problems
-- **Permission denied**: Ensure key file has correct permissions (`chmod 400 your-key-file.pem`)
-- **Connection timeout**: Check security groups allow SSH access from your IP
-- **Host key verification failed**: Add EC2 instance to known_hosts or use `-o StrictHostKeyChecking=no`
-- **Key not found**: Verify the key file path is correct
-
-Test your SSH connection:
-```bash
-ssh -i your-key-file.pem -o ConnectTimeout=10 ec2-user@your-ec2-public-ip
-```
-
-#### Database Connection Problems
-- **Connection timeout**: Most likely cause is **RDS not publicly accessible** - this is expected and correct
-- **Must run on EC2**: The application must be run from EC2, not from your local machine
-- **Check VPC configuration**: Ensure EC2 and RDS are in the **same VPC**
-- **Security group rules**: Verify RDS security group allows connections from EC2 security group
-- **Database status**: Confirm RDS instance is in "Available" status
-
-#### Application Problems
-- **Python module not found**: Check if required packages are installed on EC2
-- **Database tables not created**: Ensure database allows CREATE TABLE operations
-- **Environment variables**: Verify `.env` file exists on EC2 and contains correct credentials
-
-Check Python dependencies on EC2:
-```bash
-python3 -c "import psycopg2, cryptography; print('Dependencies OK')"
-```
-
-Install missing dependencies if needed:
-```bash
-pip3 install psycopg2-binary cryptography python-dotenv
-```
-
-#### Authentication Issues
-- Master passwords are case-sensitive
-- Username and master password combination must match exactly
-- If you get "encryption errors," verify you're using the correct master password
 
 ## Database Schema Reference
 
