@@ -316,22 +316,6 @@ pg_dump -h your-db-host -p 5432 -U your-db-admin -d password_manager > backup.sq
 psql -h your-db-host -p 5432 -U your-db-admin -d password_manager < backup.sql
 ```
 
-## Important Security Notes
-
-⚠️ **Critical Security Information**
-
-- **Terminal privacy**: Ensure you're in a private terminal session when viewing passwords
-- **Master password**: This is never stored anywhere. If you forget it, your data cannot be recovered
-- **Screen privacy**: Passwords are displayed in plain text in the terminal - ensure no one is watching
-- **Terminal history**: Consider using `history -c` after use to clear command history
-- **SSH security**: Always use SSH keys instead of passwords for EC2 access
-- **Database isolation**: RDS is private and not accessible from the internet
-- **Network security**: Database connections use SSL/TLS encryption
-- **Environment variables**: Keep your `.env` file secure and never commit it to version control
-- **SSH Keys**: Never commit your `.pem` key files to version control
-- **Database credentials**: Use strong passwords and limit access
-- **Screen sessions**: Be careful with screen/tmux sessions that might persist passwords
-
 ## Development History
 
 This password manager has evolved through multiple versions:
