@@ -315,17 +315,3 @@ pg_dump -h your-db-host -p 5432 -U your-db-admin -d password_manager > backup.sq
 # Restore from backup
 psql -h your-db-host -p 5432 -U your-db-admin -d password_manager < backup.sql
 ```
-
-## Development History
-
-This password manager has evolved through multiple versions:
-- **V1**: Single-user with file-based salt storage
-- **V2**: Multi-user with JSON file storage
-- **V3**: PostgreSQL-based multi-user system with AWS deployment
-- **V4**: Current version consisting of V3 + Delete function
-
-The current version provides better security, scalability, and reliability compared to previous file-based approaches.
-
-## Disclaimer
-
-This software is provided as-is. While it implements industry-standard security practices, use it at your own risk. Always maintain proper backups and follow security best practices. The private database configuration is required for production use.
